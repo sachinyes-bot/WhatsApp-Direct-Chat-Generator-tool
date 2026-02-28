@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Generate secure WhatsApp direct chat links instantly with country code, optional message, copy, and open actions." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#22c55e" />
+  <title>WhatsApp Direct Chat Generator</title>
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --primary: #22c55e;
+      --primary-700: #16a34a;
+      --danger: #ef4444;
+      --ring: rgba(34, 197, 94, 0.3);
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --toast-bg: #111827;
+      --toast-text: #f9fafb;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --primary: #22c55e;
+      --primary-700: #4ade80;
+      --danger: #f87171;
+      --ring: rgba(74, 222, 128, 0.3);
+      --border: #1f2937;
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      --toast-bg: #f9fafb;
+      --toast-text: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, rgba(34, 197, 94, 0.12), transparent 40%), var(--bg);
+      color: var(--text);
+      min-height: 100%;
+    }
+
+    .wrapper {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .widget {
+      width: 100%;
+      max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 320ms ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .theme-toggle {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: transform 150ms ease, background 150ms ease;
+      white-space: nowrap;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      background: rgba(148, 163, 184, 0.1);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .phone-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px;
+    }
+
+    select,
+    input,
+    textarea,
+    .output {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      outline: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      max-height: 180px;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus,
+    .output:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .hint,
+    .error,
+    .success {
+      margin: 0;
+      font-size: 0.8rem;
+      min-height: 1.1em;
+    }
+
+    .hint {
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    .success {
+      color: var(--primary-700);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .actions.secondary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 150ms ease, filter 150ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #052e16;
+    }
+
+    .btn-alt {
+      background: rgba(34, 197, 94, 0.14);
+      color: var(--primary-700);
+    }
+
+    .btn-ghost {
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+    }
+
+    .output-wrap {
+      position: relative;
+    }
+
+    .output {
+      padding-right: 64px;
+      overflow-x: auto;
+      white-space: nowrap;
+      user-select: all;
+    }
+
+    .status-pill {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: rgba(148, 163, 184, 0.12);
+      border-radius: 999px;
+      padding: 4px 8px;
+      pointer-events: none;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .switch {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .switch input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      pointer-events: none;
+      transition: opacity 220ms ease, transform 220ms ease;
+      z-index: 999;
+      max-width: calc(100vw - 28px);
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 540px) {
+      .widget {
+        padding: 18px;
+        border-radius: 16px;
+      }
+
+      .phone-row,
+      .actions,
+      .actions.secondary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrapper">
+    <section class="widget" aria-labelledby="widget-title">
+      <header class="header">
+        <div>
+          <h1 id="widget-title">WhatsApp Direct Chat Generator</h1>
+          <p class="sub">Generate secure direct chat links instantly.</p>
+        </div>
+        <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle dark mode">🌙 Dark</button>
+      </header>
+
+      <form id="chatForm" class="form-grid" novalidate>
+        <div class="field">
+          <label for="mobile">Mobile Number</label>
+          <div class="phone-row">
+            <div>
+              <label for="country" class="hint">Country</label>
+              <select id="country" name="country" aria-label="Select country code">
+                <option value="91" data-iso="IN" selected>🇮🇳 India (+91)</option>
+                <option value="1" data-iso="US">🇺🇸 US/Canada (+1)</option>
+                <option value="44" data-iso="GB">🇬🇧 United Kingdom (+44)</option>
+                <option value="61" data-iso="AU">🇦🇺 Australia (+61)</option>
+                <option value="971" data-iso="AE">🇦🇪 UAE (+971)</option>
+                <option value="65" data-iso="SG">🇸🇬 Singapore (+65)</option>
+              </select>
+            </div>
+            <div>
+              <label for="mobile" class="hint">Number (digits only)</label>
+              <input id="mobile" name="mobile" type="tel" inputmode="numeric" autocomplete="tel" maxlength="15" placeholder="e.g. 8273132101" aria-describedby="mobileHint mobileError" required />
+            </div>
+          </div>
+          <p id="mobileHint" class="hint">Symbols and spaces are auto-removed.</p>
+          <p id="mobileError" class="error" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="message">Custom Message (Optional)</label>
+          <textarea id="message" name="message" maxlength="500" placeholder="Hi, I would like to know more about your services."></textarea>
+          <p class="hint">Max 500 characters.</p>
+        </div>
+
+        <div class="actions">
+          <button id="generateBtn" class="btn-primary" type="submit">Generate Link</button>
+          <button id="resetBtn" class="btn-danger" type="reset">Reset</button>
+        </div>
+
+        <div class="field">
+          <label for="output">Generated WhatsApp Link</label>
+          <div class="output-wrap">
+            <input id="output" class="output" type="text" readonly aria-live="polite" placeholder="https://wa.me/..." />
+            <span class="status-pill" id="statusPill">Ready</span>
+          </div>
+          <p id="outputState" class="success" aria-live="polite"></p>
+        </div>
+
+        <div class="actions secondary">
+          <button id="copyBtn" class="btn-alt" type="button">Copy Link</button>
+          <button id="openBtn" class="btn-alt" type="button">Open WhatsApp</button>
+          <button id="autoBtn" class="btn-ghost" type="button" aria-pressed="true">Auto Open: ON</button>
+        </div>
+
+        <details>
+          <summary>Tracking (Optional)</summary>
+          <label class="switch" for="trackingToggle">
+            <input id="trackingToggle" type="checkbox" />
+            <span>Enable dataLayer event push for generate/copy/open actions.</span>
+          </label>
+        </details>
+      </form>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var form = document.getElementById("chatForm");
+      var mobileInput = document.getElementById("mobile");
+      var countrySelect = document.getElementById("country");
+      var messageInput = document.getElementById("message");
+      var outputInput = document.getElementById("output");
+      var mobileError = document.getElementById("mobileError");
+      var outputState = document.getElementById("outputState");
+      var statusPill = document.getElementById("statusPill");
+      var themeToggle = document.getElementById("themeToggle");
+      var copyBtn = document.getElementById("copyBtn");
+      var openBtn = document.getElementById("openBtn");
+      var autoBtn = document.getElementById("autoBtn");
+      var trackingToggle = document.getElementById("trackingToggle");
+      var toast = document.getElementById("toast");
+
+      var autoOpen = true;
+      var toastTimer = null;
+
+      function sanitizeDigits(value) {
+        return String(value).replace(/[^\d]/g, "");
+      }
+
+      function safeMessage(value) {
+        return String(value || "").replace(/[<>]/g, "").trim();
+      }
+
+      function setError(message) {
+        mobileError.textContent = message;
+        if (message) {
+          statusPill.textContent = "Invalid";
+          outputState.textContent = "";
+        }
+      }
+
+      function setSuccess(message) {
+        outputState.textContent = message;
+        if (message) {
+          statusPill.textContent = "Ready";
+        }
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+        }
+        toastTimer = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 1600);
+      }
+
+      function pushTracking(eventName, payload) {
+        if (!trackingToggle.checked || !Array.isArray(window.dataLayer)) {
+          return;
+        }
+        window.dataLayer.push({
+          event: eventName,
+          tool: "wa_direct_chat_generator",
+          payload: payload
+        });
+      }
+
+      function normalizeNumber() {
+        var raw = sanitizeDigits(mobileInput.value);
+        mobileInput.value = raw;
+
+        if (!raw) {
+          setError("Please enter a mobile number.");
+          return null;
+        }
+
+        if (!/^\d+$/.test(raw)) {
+          setError("Mobile number must contain digits only.");
+          return null;
+        }
+
+        if (raw.length < 6 || raw.length > 15) {
+          setError("Mobile number length should be between 6 and 15 digits.");
+          return null;
+        }
+
+        var selectedCode = sanitizeDigits(countrySelect.value);
+
+        if (raw.length === 10 && selectedCode === "91" && raw.indexOf("91") !== 0) {
+          return "91" + raw;
+        }
+
+        if (raw.indexOf(selectedCode) === 0 && raw.length > selectedCode.length + 5) {
+          return raw;
+        }
+
+        return selectedCode + raw;
+      }
+
+      function buildLink() {
+        var normalized = normalizeNumber();
+        if (!normalized) {
+          outputInput.value = "";
+          return null;
+        }
+
+        setError("");
+
+        var message = safeMessage(messageInput.value);
+        var link = "https://wa.me/" + normalized;
+
+        if (message) {
+          link += "?text=" + encodeURIComponent(message);
+        }
+
+        outputInput.value = link;
+        setSuccess("Link generated successfully.");
+        return link;
+      }
+
+      function copyToClipboard(text) {
+        if (!text) {
+          showToast("Generate a link first.");
+          return;
+        }
+
+        navigator.clipboard.writeText(text).then(function () {
+          showToast("Link copied to clipboard.");
+          pushTracking("wa_copy_click", { link: text });
+        }).catch(function () {
+          showToast("Copy failed. You can select and copy manually.");
+        });
+      }
+
+      function openWhatsApp(link) {
+        if (!link) {
+          showToast("Generate a link first.");
+          return;
+        }
+        window.open(link, "_blank", "noopener,noreferrer");
+        pushTracking("wa_open_click", { link: link });
+      }
+
+      function updateTheme(mode) {
+        var finalMode = mode === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", finalMode);
+        themeToggle.textContent = finalMode === "dark" ? "☀️ Light" : "🌙 Dark";
+        try {
+          localStorage.setItem("wa_theme", finalMode);
+        } catch (e) {
+          // Ignore storage errors.
+        }
+      }
+
+      mobileInput.addEventListener("input", function () {
+        var cleaned = sanitizeDigits(mobileInput.value).slice(0, 15);
+        mobileInput.value = cleaned;
+        if (cleaned.length >= 6) {
+          setError("");
+        }
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var link = buildLink();
+
+        if (!link) {
+          return;
+        }
+
+        pushTracking("wa_generate_click", { link: link });
+        copyToClipboard(link);
+
+        if (autoOpen) {
+          openWhatsApp(link);
+        }
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        setError("");
+        setSuccess("");
+        outputInput.value = "";
+        statusPill.textContent = "Ready";
+        showToast("Form reset.");
+      });
+
+      copyBtn.addEventListener("click", function () {
+        copyToClipboard(outputInput.value.trim());
+      });
+
+      openBtn.addEventListener("click", function () {
+        openWhatsApp(outputInput.value.trim());
+      });
+
+      autoBtn.addEventListener("click", function () {
+        autoOpen = !autoOpen;
+        autoBtn.setAttribute("aria-pressed", String(autoOpen));
+        autoBtn.textContent = autoOpen ? "Auto Open: ON" : "Auto Open: OFF";
+      });
+
+      themeToggle.addEventListener("click", function () {
+        var current = document.documentElement.getAttribute("data-theme") || "light";
+        updateTheme(current === "light" ? "dark" : "light");
+      });
+
+      form.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && event.target.tagName !== "TEXTAREA") {
+          event.preventDefault();
+          document.getElementById("generateBtn").click();
+        }
+      });
+
+      try {
+        var savedTheme = localStorage.getItem("wa_theme");
+        if (savedTheme) {
+          updateTheme(savedTheme);
+        }
+      } catch (e) {
+        updateTheme("light");
+      }
+    })();
+  </script>
+</body>
+</html>
